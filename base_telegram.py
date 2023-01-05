@@ -12,14 +12,15 @@ logger = logging.getLogger(__name__)
 
 """
     Base Telegram 
-    텔레그램을 사용하기 위한 
+    텔레그램을 사용하기 위한 Class
 """
 class BaseTelegram:
-    def __init__(self, token) -> None:
+    def __init__(self, token: str) -> None:
         self.TOKEN = token
+        self.init()
         pass
 
-    def start_command(update: Update, context: CallbackContext) -> None:
+    def start_command(self, update: Update, context: CallbackContext) -> None:
         """Send a message when the command /start is issued."""
         user = update.effective_user
         update.message.reply_markdown_v2(
@@ -27,15 +28,20 @@ class BaseTelegram:
             reply_markup=ForceReply(selective=True),
         )
 
-    def help_command(update: Update, context: CallbackContext) -> None:
+    def help_command(self, update: Update, context: CallbackContext) -> None:
         """Send a message when the command /help is issued."""
         update.message.reply_text("Help Message")    
 
-    def echo_command(update: Update, context: CallbackContext) -> None:
+    def echo_command(self, update: Update, context: CallbackContext) -> None:
         """Get user text and reply."""
+
+        logger.info("{} :: {}".format(update.effective_user.full_name,update.message.text))
         update.message.reply_text(update.message.text)
     
     def init(self):
+        """
+            init function
+        """
         updater = Updater(self.TOKEN)
         dispatcher = updater.dispatcher
 
