@@ -25,12 +25,11 @@ driver2 = webdriver.Chrome(service=Service(ChromeDriverManager().install()), chr
 
 load_dotenv()
 
-
 # 게시판 진입 (비어있는 곳 찾기)
-def parse_html_with_url(url: str):
+def get_magnet_list(url: str):
     logging.info("parse start")
     items = ""
-    for i in range(1,6):
+    for i in range(1,2):
         try:
             driver.get("{}{}".format(url,str(i)))
 
@@ -40,19 +39,26 @@ def parse_html_with_url(url: str):
             for row in li:
                 r = row.find_element(by=By.CSS_SELECTOR, value="div.flex-grow.truncate > a").text
                 href = row.find_element(by=By.CSS_SELECTOR, value="div.flex-grow.truncate > a").get_attribute("href")
-                magnet = get_magnet(href=href)
+                
+                # 마그넷 리스트를 싹 다 긁어온다.
+                driver2.get(href)
+                first = driver2.find_element(by=By.XPATH, value="//div[@class='mt-2']")
+                second = first.find_elements(by=By.XPATH, value="//div[@class='border p-2']")
 
-                items += """
-                    <item>
-                        <title>{}</title>
-                        <link>{}</link>
-                        <description>
-                            
-                        </description>
-                    </item>
-                """.format(r, magnet)
-        except:
-            logging.error("Error :: 사이트 주소 또는 파싱 에러")
+                for item in second:
+                    magnet = item.find_element(by=By.CSS_SELECTOR, value="div.box_content.p-0 > div.border-top.p-2.text-center > div > a.ml-2.p-2.border.text-16px").get_attribute("href")
+                    name = item.find_element(by=By.TAG_NAME, value="h3").text
+                    items += """
+                        <item>
+                            <title>{}</title>
+                            <link>{}</link>
+                            <description>
+                                
+                            </description>
+                        </item>
+                    """.format(name, magnet)                
+        except Exception as e:
+            logging.error("Error :: 사이트 주소 또는 파싱 에러 {}".format(e))
             return
 
     if(items != ""):
@@ -63,20 +69,15 @@ def parse_html_with_url(url: str):
             file_name = "example2"
         elif(url == os.environ.get("ANI")):
             file_name = "example3"
-            
+
         make_rss(add_line=items, file_name=file_name)
     logging.info("rss make done")
 
 
-def get_magnet(href: str)-> str:
-    driver2.get(href)
-    return driver2.find_element(by=By.CSS_SELECTOR, value="body > div.container.mx-auto.max-w-7xl.flex.flex-col.lg\:flex-row.pb-4.mt-2.text-sm > div.flex-grow > div.w-full > div.mt-2 > div.border.p-2 > div.box_content.p-0 > div:nth-child(6) > div > a.ml-2.p-2.border.text-16px").get_attribute("href")
-
-
 def make_rss(add_line: str, file_name: str):
     # 경로는 맞게 수정 필요 (리눅스 도커 맵핑 기준)
-    ff= open("../rss/{}.xml".format(file_name), "w+")
-    with open("/home/rss_template.xml", "r+") as f:
+    ff= open("{}.xml".format(file_name), "w+")
+    with open("rss_template.xml", "r+") as f:
         lines = ""
         for line in f:
             if(line.startswith("        {__수정할부분__}")):
@@ -88,12 +89,11 @@ def make_rss(add_line: str, file_name: str):
 
 
 def call_all_rss():
-    parse_html_with_url(url=os.environ.get("DRAMA"))
-    parse_html_with_url(url=os.environ.get("MOVIE"))
-    parse_html_with_url(url=os.environ.get("ANI"))
+    get_magnet_list(url=os.environ.get("DRAMA"))
+    get_magnet_list(url=os.environ.get("MOVIE"))
+    get_magnet_list(url=os.environ.get("ANI"))
     driver.quit()
     driver2.quit()
-
 
 if (__name__ == "__main__"):
     """init function"""
