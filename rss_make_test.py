@@ -25,28 +25,6 @@ driver2 = webdriver.Chrome(service=Service(ChromeDriverManager().install()), chr
 
 load_dotenv()
 
-def make_rss(add_line: str, file_name: str):
-    # 경로는 맞게 수정 필요 (리눅스 도커 맵핑 기준)
-    ff= open("{}.xml".format(file_name), "w+")
-    with open("rss_template.xml", "r+") as f:
-        lines = ""
-        for line in f:
-            if(line.startswith("        {__수정할부분__}")):
-                lines += add_line
-            else:
-                lines += line
-        ff.write(lines)
-    ff.close()
-
-
-def call_all_rss():
-    get_magnet_list(url=os.environ.get("DRAMA"))
-    get_magnet_list(url=os.environ.get("MOVIE"))
-    get_magnet_list(url=os.environ.get("ANI"))
-    driver.quit()
-    driver2.quit()
-
-
 # 게시판 진입 (비어있는 곳 찾기)
 def get_magnet_list(url: str):
     logging.info("parse start")
@@ -95,6 +73,27 @@ def get_magnet_list(url: str):
         make_rss(add_line=items, file_name=file_name)
     logging.info("rss make done")
 
+
+def make_rss(add_line: str, file_name: str):
+    # 경로는 맞게 수정 필요 (리눅스 도커 맵핑 기준)
+    ff= open("{}.xml".format(file_name), "w+")
+    with open("rss_template.xml", "r+") as f:
+        lines = ""
+        for line in f:
+            if(line.startswith("        {__수정할부분__}")):
+                lines += add_line
+            else:
+                lines += line
+        ff.write(lines)
+    ff.close()
+
+
+def call_all_rss():
+    get_magnet_list(url=os.environ.get("DRAMA"))
+    get_magnet_list(url=os.environ.get("MOVIE"))
+    get_magnet_list(url=os.environ.get("ANI"))
+    driver.quit()
+    driver2.quit()
 
 if (__name__ == "__main__"):
     """init function"""
