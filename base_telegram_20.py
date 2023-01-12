@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import word as w
 from home_markup import markup, goHome
-from custom_add_handler import conv_handler
+from handler.custom_add_handler import conv_handler
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
